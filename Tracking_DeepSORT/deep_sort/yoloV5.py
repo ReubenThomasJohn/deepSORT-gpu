@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+import matplotlib.pyplot as plt
 '''
 Notes: 
 1. We are creating a YOLO() class that performs object detection, and non-maxima suppression
@@ -41,7 +41,7 @@ class YOLO_Fast(): # outputs tlbr bounding boxes
         self.YELLOW = (0, 255, 255)
         
         # Network & Classes
-        classesFile = "./Tracking_DeepSORT/data/labels/coco.names"
+        classesFile = "/home/reuben/Projects/deepSORT-gpu/Tracking_DeepSORT/data/labels/coco.names"
         self.classes = None
         # A handy way to read all the classes from a file, without needed to hardcode each one
         with open(classesFile, 'rt') as f:
@@ -68,6 +68,7 @@ class YOLO_Fast(): # outputs tlbr bounding boxes
         self.net.setInput(blob)
 
         self.outputs = self.net.forward(self.net.getUnconnectedOutLayersNames())
+        # print(self.outputs[0].shape)
 
     def post_process(self):
         '''
@@ -95,6 +96,7 @@ class YOLO_Fast(): # outputs tlbr bounding boxes
         for r in range(rows):
             row = self.outputs[0][0][r]
             confidence = row[4]
+            print('confidence', confidence)
 
             # Discard bad detections and continue.
             if confidence >= self.CONFIDENCE_THRESHOLD:
@@ -238,3 +240,20 @@ class YOLO_Fast(): # outputs tlbr bounding boxes
             self.drawNMSBoxes()
 
         return self.boxes, np.array([self.classes_scores]), np.array([self.class_ids]), len(self.class_ids)
+
+
+
+
+if __name__ == "__main__":
+    yolo_detector = YOLO_Fast(model='/home/reuben/Projects/deepSORT-gpu/Tracking_DeepSORT/deep_sort/onnx_models/yolov5s.onnx')
+
+    input = cv2.imread('Tracking_DeepSORT/car.jpg')
+    input = cv2.resize(input, (416, 416))
+
+    _, _, _, _ = yolo_detector.object_detection(input, visualise=True)
+    cv2.namedWindow('output')
+    cv2.resizeWindow('output', 1424, 1068)
+    cv2.imshow('output', input)
+
+    if cv2.waitKey(0) == ord('q'):
+        cv2.destroyAllWindows()

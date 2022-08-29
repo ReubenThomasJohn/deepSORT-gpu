@@ -43,11 +43,11 @@ metric = nn_matching.NearestNeighborDistanceMetric('cosine', max_cosine_distance
 tracker = Tracker(metric)
 
 # create our video object
-vid = cv2.VideoCapture('Tracking_DeepSORT/data/video/test.mp4')
+vid = cv2.VideoCapture('Tracking_DeepSORT/data/video/MOT16-13-raw.webm')
 codec = cv2.VideoWriter_fourcc(*'XVID')
 vid_fps =int(vid.get(cv2.CAP_PROP_FPS))
 # vid_width,vid_height = int(vid.get(cv2.CAP_PROP_FRAME_WIDTH)), int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
-out = cv2.VideoWriter('Tracking_DeepSORT/data/video/002.avi', codec, vid_fps, (640, 640))
+out = cv2.VideoWriter('Tracking_DeepSORT/data/video/1.mp4', codec, vid_fps, (640, 640))
 
 from collections import deque
 pts = [deque(maxlen=30) for _ in range(1000)] 
@@ -60,7 +60,7 @@ while True:
         print('Completed')
         break
 
-    img_in = cv2.resize(img, (640,640)) # We resie to (640, 640) since YOLOv5 was trained on this shape
+    img_in = cv2.resize(img, (640,640)) # We resize to (640, 640) since YOLOv5 was trained on this shape
 
     t1 = time.time()
 
@@ -90,6 +90,8 @@ while True:
     tracker.predict()
     tracker.update(detections)
 
+
+
     # These lines are simply for visualization purposes. 
     cmap = plt.get_cmap('tab20b')
     colors = [cmap(i)[:3] for i in np.linspace(0,1,20)]
@@ -109,7 +111,7 @@ while True:
         color = [i * 255 for i in color]
 
         # visualization
-        cv2.rectangle(img_in, (int(bbox[0]),int(bbox[1])), (int(bbox[2]),int(bbox[3])), color, 2)
+        # cv2.rectangle(img_in, (int(bbox[0]),int(bbox[1])), (int(bbox[2]),int(bbox[3])), color, 2)
         cv2.rectangle(img_in, (int(bbox[0]), int(bbox[1]-30)), (int(bbox[0])+(len(class_name)
                     +len(str(track.track_id)))*17, int(bbox[1])), color, -1)
         cv2.putText(img_in, class_name+"-"+str(track.track_id), (int(bbox[0]), int(bbox[1]-10)), 0, 0.75,
@@ -141,8 +143,9 @@ while True:
 
     fps = 1./(time.time()-t1)
     cv2.putText(img_in, "FPS: {:.2f}".format(fps), (0,30), 0, 1, (0,0,255), 2)
+    # img_in = cv2.resize(img_in, (1920, 1080))
     cv2.namedWindow('output')
-    # cv2.resizeWindow('output', 1024, 768)
+    # cv2.resizeWindow('output', 1424, 1068)
     cv2.imshow('output', img_in)
     out.write(img_in)
 
