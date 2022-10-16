@@ -1,13 +1,14 @@
 import cv2
+print(cv2.cuda.getCudaEnabledDeviceCount())
 import numpy as np
-import matplotlib.pyplot as plt
+
 '''
 Notes: 
 1. We are creating a YOLO() class that performs object detection, and non-maxima suppression
 2. We will create it in such a way, that we can integrate use it in the upcoming
 tracking project as well.
 '''
-class YOLO_Fast(): # outputs tlbr bounding boxes
+class YOLO_DNN(): # outputs tlbr bounding boxes
     '''
     YOLOv5 outputs 25200 detections. Each detection is an array containing the following format
     [cx, cy, w, h, confidence, scores for each class]. Hence, each detection will be an array of len (5 + no. of classes)
@@ -20,7 +21,7 @@ class YOLO_Fast(): # outputs tlbr bounding boxes
     
     # Constructor
     # We create  a constructor that takes in score, confidence and nms thresholds, along with which model to use. 
-    def __init__(self, sc_thresh=.5, nms_thresh=.45, cnf_thresh=.45, model="./Single-Multiple-Custom-Object-Detection-and-Tracking/deep_sort/onnx_models/yolov5s.onnx"):
+    def __init__(self, sc_thresh=.5, nms_thresh=.45, cnf_thresh=.45, model="Tracking_DeepSORT/deep_sort/onnx_models/yolov5s.onnx"):
         # Our model (YOLOv5) architecture expects a 640px by 640px image as input
         self.INPUT_WIDTH = 640
         self.INPUT_HEIGHT = 640
@@ -41,7 +42,7 @@ class YOLO_Fast(): # outputs tlbr bounding boxes
         self.YELLOW = (0, 255, 255)
         
         # Network & Classes
-        classesFile = "/home/reuben/Projects/deepSORT-gpu/Tracking_DeepSORT/data/labels/coco.names"
+        classesFile = "./Tracking_DeepSORT/data/labels/coco.names"
         self.classes = None
         # A handy way to read all the classes from a file, without needed to hardcode each one
         with open(classesFile, 'rt') as f:
@@ -68,7 +69,6 @@ class YOLO_Fast(): # outputs tlbr bounding boxes
         self.net.setInput(blob)
 
         self.outputs = self.net.forward(self.net.getUnconnectedOutLayersNames())
-        # print(self.outputs[0].shape)
 
     def post_process(self):
         '''
@@ -242,15 +242,15 @@ class YOLO_Fast(): # outputs tlbr bounding boxes
         return self.boxes, np.array([self.classes_scores]), np.array([self.class_ids]), len(self.class_ids)
 
 if __name__ == "__main__":
-    yolo_detector = YOLO_Fast(model='/home/reuben/Projects/deepSORT-gpu/Tracking_DeepSORT/deep_sort/onnx_models/yolov5s.onnx')
+    yolo_detector = YOLO_DNN()
 
     input = cv2.imread('Tracking_DeepSORT/car.jpg')
-    input = cv2.resize(input, (416, 416))
+    input = cv2.resize(input, (640, 640))
 
     _, _, _, _ = yolo_detector.object_detection(input, visualise=True)
     cv2.namedWindow('output')
     cv2.resizeWindow('output', 1424, 1068)
-    cv2.imshow('output', input)
+    cv2.imshow('output', yolo_detector.image)
 
     if cv2.waitKey(0) == ord('q'):
-        cv2.destroyAllWindows()
+        cv2.destroyAllWindows()  
